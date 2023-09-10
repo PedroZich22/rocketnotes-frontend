@@ -8,7 +8,6 @@ function AuthProvider({ children }) {
   const [data, setData] = useState({});
 
   async function signIn({ email, password }) {
-    //setando configurações do usuário logado
     try {
       const response = await api.post("/sessions", { email, password });
       const { user, token } = response.data;
@@ -16,9 +15,7 @@ function AuthProvider({ children }) {
       localStorage.setItem("@RocketNotes:user", JSON.stringify(user));
       localStorage.setItem("@RocketNotes:token", token);
 
-      //requisições com o header preenchido com o token
-      api.defaults.headers.authotization = `Bearer ${token}`;
-      //estado para enchergar os dados do usuário na aplicação
+      api.defaults.headers.common["Authotization"] = `Bearer ${token}`;
       setData({ user, token });
     } catch (error) {
       if (error.response) {
@@ -29,19 +26,32 @@ function AuthProvider({ children }) {
     }
   }
 
+  function signOut() {
+    localStorage.removeItem("@RocketNotes:user");
+    localStorage.removeItem("@RocketNotes:token");
+
+    setData({});
+  }
+
   useEffect(() => {
     //verificando se o usuário já está logado
     const user = localStorage.getItem("@RocketNotes:user");
     const token = localStorage.getItem("@RocketNotes:token");
 
     if (user && token) {
-      api.defaults.headers.authotization = `Bearer ${token}`;
+      api.defaults.headers.common["Authotization"] = `Bearer ${token}`;
       setData({ user: JSON.parse(user), token });
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ signIn, user: data.user }}>
+    <AuthContext.Provider
+      value={{
+        signIn,
+        signOut,
+        user: data.user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
