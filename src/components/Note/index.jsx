@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Container } from "./styles";
 import { Tag } from "../Tag";
 
