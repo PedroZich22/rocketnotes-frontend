@@ -15,7 +15,7 @@ function AuthProvider({ children }) {
       localStorage.setItem("@RocketNotes:user", JSON.stringify(user));
       localStorage.setItem("@RocketNotes:token", token);
 
-      api.defaults.headers.common["Authotization"] = `Bearer ${token}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setData({ user, token });
     } catch (error) {
       if (error.response) {
@@ -33,13 +33,37 @@ function AuthProvider({ children }) {
     setData({});
   }
 
+  async function updateProfile({ user, avatarFile }) {
+    try {
+      if (avatarFile) {
+        const fileUploadForm = new FormData();
+        fileUploadForm.append("avatar", avatarFile);
+
+        const response = await api.patch("/users/avatar", fileUploadForm);
+        user.avatar = response.data.avatar;
+      }
+
+      await api.put("/users", user);
+      localStorage.setItem("@RocketNotes:user", JSON.stringify(user));
+
+      setData({ user, token: data.token });
+      alert("Perfil atualizado com sucesso!");
+    } catch (error) {
+      if (error.response) {
+        alert(error.response.data.message);
+      } else {
+        alert("Não foi possível atualizar o perfil");
+      }
+    }
+  }
+
   useEffect(() => {
     //verificando se o usuário já está logado
     const user = localStorage.getItem("@RocketNotes:user");
     const token = localStorage.getItem("@RocketNotes:token");
 
     if (user && token) {
-      api.defaults.headers.common["Authotization"] = `Bearer ${token}`;
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setData({ user: JSON.parse(user), token });
     }
   }, []);
@@ -49,6 +73,7 @@ function AuthProvider({ children }) {
       value={{
         signIn,
         signOut,
+        updateProfile,
         user: data.user,
       }}
     >
